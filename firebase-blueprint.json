@@ -1,0 +1,380 @@
+{
+  "entities": {
+    "Service": {
+      "title": "Service",
+      "description": "Serviço prestado pelo salão de beleza",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome do serviço",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "category": {
+          "type": "string",
+          "description": "Categoria do serviço (ex. Colorimetria, Corte & Styling, Tratamentos)",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "description": {
+          "type": "string",
+          "description": "Descrição curta do serviço",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "price": {
+          "type": "number",
+          "description": "Preço em euros (€)"
+        },
+        "durationMinutes": {
+          "type": "number",
+          "description": "Duração em minutos"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Se o serviço está ativo para marcação pública"
+        }
+      },
+      "required": ["name", "category", "description", "price", "durationMinutes", "active"]
+    },
+    "Professional": {
+      "title": "Professional",
+      "description": "Profissional da equipa do salão",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nome completo ou artístico da profissional",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "description": "Especialidade (ex. Master Colorist, Hair Stylist)",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "bio": {
+          "type": "string",
+          "description": "Breve apresentação",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL ou caminho da foto",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "serviceIds": {
+          "type": "array",
+          "description": "Lista de IDs dos serviços que realiza"
+        },
+        "workingDays": {
+          "type": "array",
+          "description": "Dias da semana em que trabalha (0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sáb)"
+        },
+        "workStart": {
+          "type": "string",
+          "description": "Hora de início (HH:MM)",
+          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "workEnd": {
+          "type": "string",
+          "description": "Hora de fim (HH:MM)",
+          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "daysOff": {
+          "type": "array",
+          "description": "Datas específicas de férias ou folga (YYYY-MM-DD)"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Se está disponível no salão"
+        }
+      },
+      "required": ["name", "role", "bio", "photoUrl", "serviceIds", "workingDays", "workStart", "workEnd", "daysOff", "active"]
+    },
+    "ProfessionalPrivate": {
+      "title": "ProfessionalPrivate",
+      "description": "Dados contratuais privados de cada profissional (acessível apenas ao dono)",
+      "type": "object",
+      "properties": {
+        "professionalId": {
+          "type": "string",
+          "description": "ID da profissional correspondente",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "contractType": {
+          "type": "string",
+          "description": "Tipo de contrato: fixo ou comissao",
+          "enum": ["fixo", "comissao"]
+        },
+        "commissionPercent": {
+          "type": "number",
+          "description": "Percentagem de comissão (0 a 100)"
+        }
+      },
+      "required": ["professionalId", "contractType", "commissionPercent"]
+    },
+    "BookedSlot": {
+      "title": "BookedSlot",
+      "description": "Registo público anónimo de ocupação de horário (sem dados pessoais de clientes)",
+      "type": "object",
+      "properties": {
+        "professionalId": {
+          "type": "string",
+          "description": "ID da profissional alocada",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "date": {
+          "type": "string",
+          "description": "Data no formato YYYY-MM-DD",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "minLength": 10,
+          "maxLength": 10
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Hora de início (HH:MM)",
+          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "endTime": {
+          "type": "string",
+          "description": "Hora de fim (HH:MM)",
+          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "status": {
+          "type": "string",
+          "description": "Estado da ocupação",
+          "enum": ["confirmada", "concluida", "cancelada", "nao_compareceu"]
+        }
+      },
+      "required": ["professionalId", "date", "startTime", "endTime", "status"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Marcação completa com dados pessoais do cliente (PII isolada para o dono)",
+      "type": "object",
+      "properties": {
+        "slotId": {
+          "type": "string",
+          "description": "ID do BookedSlot correspondente",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "professionalId": {
+          "type": "string",
+          "description": "ID da profissional",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "professionalName": {
+          "type": "string",
+          "description": "Nome da profissional",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "serviceIds": {
+          "type": "array",
+          "description": "IDs dos serviços selecionados"
+        },
+        "serviceNames": {
+          "type": "array",
+          "description": "Nomes dos serviços selecionados"
+        },
+        "totalPrice": {
+          "type": "number",
+          "description": "Valor total em euros (€)"
+        },
+        "totalDurationMinutes": {
+          "type": "number",
+          "description": "Duração total em minutos"
+        },
+        "date": {
+          "type": "string",
+          "description": "Data YYYY-MM-DD",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "minLength": 10,
+          "maxLength": 10
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Hora de início HH:MM",
+          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "endTime": {
+          "type": "string",
+          "description": "Hora de fim HH:MM",
+          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Nome do cliente",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "clientPhone": {
+          "type": "string",
+          "description": "Telemóvel do cliente",
+          "minLength": 6,
+          "maxLength": 30
+        },
+        "clientEmail": {
+          "type": "string",
+          "description": "Email do cliente",
+          "minLength": 5,
+          "maxLength": 120
+        },
+        "notes": {
+          "type": "string",
+          "description": "Observações opcionais",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "gdprConsent": {
+          "type": "boolean",
+          "description": "Consentimento RGPD obrigatório"
+        },
+        "status": {
+          "type": "string",
+          "description": "Estado da marcação",
+          "enum": ["confirmada", "concluida", "cancelada", "nao_compareceu"]
+        },
+        "createdAtIso": {
+          "type": "string",
+          "description": "Timestamp ISO de criação",
+          "minLength": 10,
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "slotId",
+        "professionalId",
+        "professionalName",
+        "serviceIds",
+        "serviceNames",
+        "totalPrice",
+        "totalDurationMinutes",
+        "date",
+        "startTime",
+        "endTime",
+        "clientName",
+        "clientPhone",
+        "clientEmail",
+        "notes",
+        "gdprConsent",
+        "status",
+        "createdAtIso"
+      ]
+    },
+    "SalonSettings": {
+      "title": "SalonSettings",
+      "description": "Definições gerais e políticas do salão",
+      "type": "object",
+      "properties": {
+        "salonName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "address": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 30
+        },
+        "email": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 120
+        },
+        "instagramUrl": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "whatsappUrl": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "scheduleSummary": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "minAdvanceHours": {
+          "type": "number"
+        },
+        "cancellationPolicy": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 1000
+        },
+        "privacyPolicyText": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "salonName",
+        "address",
+        "phone",
+        "email",
+        "instagramUrl",
+        "whatsappUrl",
+        "scheduleSummary",
+        "minAdvanceHours",
+        "cancellationPolicy",
+        "privacyPolicyText"
+      ]
+    }
+  },
+  "firestore": {
+    "/services/{serviceId}": {
+      "schema": { "$ref": "#/entities/Service" },
+      "description": "Catálogo público de serviços do salão"
+    },
+    "/professionals/{professionalId}": {
+      "schema": { "$ref": "#/entities/Professional" },
+      "description": "Perfis públicos e horários das profissionais"
+    },
+    "/professionals_private/{professionalId}": {
+      "schema": { "$ref": "#/entities/ProfessionalPrivate" },
+      "description": "Dados contratuais e comissões das profissionais (exclusivo dono)"
+    },
+    "/booked_slots/{slotId}": {
+      "schema": { "$ref": "#/entities/BookedSlot" },
+      "description": "Blocos de horário ocupados sem dados pessoais"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "#/entities/Appointment" },
+      "description": "Marcações com dados pessoais de clientes (leitura exclusiva do dono)"
+    },
+    "/settings/{docId}": {
+      "schema": { "$ref": "#/entities/SalonSettings" },
+      "description": "Definições gerais do salão"
+    }
+  }
+}

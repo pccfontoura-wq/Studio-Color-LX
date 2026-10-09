@@ -1,0 +1,6 @@
+{
+  "name": "Studio Color Lx",
+  "description": "Salão de beleza e atelier de colorimetria, balayage e cuidados capilares de excelência no coração de Lisboa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

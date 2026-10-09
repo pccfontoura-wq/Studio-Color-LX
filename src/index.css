@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-script: 'Great Vibes', cursive;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: #2A2628;
+    background-color: #FAF8F6;
+  }
+
+  h1, h2, h3, .font-serif-display {
+    font-family: var(--font-serif);
+  }
+
+  .font-script-logo {
+    font-family: var(--font-script);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+

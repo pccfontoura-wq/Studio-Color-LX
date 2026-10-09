@@ -1,0 +1,198 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Only the verified owner email can manage internal data, clients, and reports
+    function isOwnerAdmin() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && (
+          request.auth.token.email == 'pccfontoura@gmail.com'
+          || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        );
+    }
+
+    // 3. Entity Validation Helpers
+    function isValidService(data) {
+      return data.keys().hasAll(['name', 'category', 'description', 'price', 'durationMinutes', 'active'])
+        && data.keys().hasOnly(['name', 'category', 'description', 'price', 'durationMinutes', 'active'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && data.category is string && data.category.size() >= 2 && data.category.size() <= 60
+        && data.description is string && data.description.size() <= 500
+        && data.price is number && data.price >= 0 && data.price <= 10000
+        && data.durationMinutes is number && data.durationMinutes >= 5 && data.durationMinutes <= 600
+        && data.active is bool;
+    }
+
+    function isValidProfessional(data) {
+      return data.keys().hasAll(['name', 'role', 'bio', 'photoUrl', 'serviceIds', 'workingDays', 'workStart', 'workEnd', 'daysOff', 'active'])
+        && data.keys().hasOnly(['name', 'role', 'bio', 'photoUrl', 'serviceIds', 'workingDays', 'workStart', 'workEnd', 'daysOff', 'active'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && data.role is string && data.role.size() >= 2 && data.role.size() <= 100
+        && data.bio is string && data.bio.size() <= 400
+        && data.photoUrl is string && data.photoUrl.size() >= 1 && data.photoUrl.size() <= 500
+        && data.serviceIds is list && data.serviceIds.size() <= 50
+        && data.workingDays is list && data.workingDays.size() <= 7
+        && data.workStart is string && data.workStart.size() == 5 && data.workStart.matches('^([01]\\d|2[0-3]):([0-5]\\d)$')
+        && data.workEnd is string && data.workEnd.size() == 5 && data.workEnd.matches('^([01]\\d|2[0-3]):([0-5]\\d)$')
+        && data.daysOff is list && data.daysOff.size() <= 365
+        && data.active is bool;
+    }
+
+    function isValidProfessionalPrivate(data) {
+      return data.keys().hasAll(['professionalId', 'contractType', 'commissionPercent'])
+        && data.keys().hasOnly(['professionalId', 'contractType', 'commissionPercent'])
+        && data.professionalId is string && data.professionalId.size() >= 1 && data.professionalId.size() <= 128
+        && data.contractType is string && (data.contractType == 'fixo' || data.contractType == 'comissao')
+        && data.commissionPercent is number && data.commissionPercent >= 0 && data.commissionPercent <= 100;
+    }
+
+    function isValidBookedSlot(data) {
+      return data.keys().hasAll(['professionalId', 'date', 'startTime', 'endTime', 'status'])
+        && data.keys().hasOnly(['professionalId', 'date', 'startTime', 'endTime', 'status'])
+        && data.professionalId is string && data.professionalId.size() >= 1 && data.professionalId.size() <= 128
+        && data.date is string && data.date.size() == 10 && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.startTime is string && data.startTime.size() == 5 && data.startTime.matches('^([01]\\d|2[0-3]):([0-5]\\d)$')
+        && data.endTime is string && data.endTime.size() == 5 && data.endTime.matches('^([01]\\d|2[0-3]):([0-5]\\d)$')
+        && data.status is string && data.status in ['confirmada', 'concluida', 'cancelada', 'nao_compareceu'];
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll([
+          'slotId', 'professionalId', 'professionalName', 'serviceIds', 'serviceNames',
+          'totalPrice', 'totalDurationMinutes', 'date', 'startTime', 'endTime',
+          'clientName', 'clientPhone', 'clientEmail', 'notes', 'gdprConsent', 'status', 'createdAtIso'
+        ])
+        && data.keys().hasOnly([
+          'slotId', 'professionalId', 'professionalName', 'serviceIds', 'serviceNames',
+          'totalPrice', 'totalDurationMinutes', 'date', 'startTime', 'endTime',
+          'clientName', 'clientPhone', 'clientEmail', 'notes', 'gdprConsent', 'status', 'createdAtIso'
+        ])
+        && data.slotId is string && data.slotId.size() >= 1 && data.slotId.size() <= 128
+        && data.professionalId is string && data.professionalId.size() >= 1 && data.professionalId.size() <= 128
+        && data.professionalName is string && data.professionalName.size() >= 1 && data.professionalName.size() <= 100
+        && data.serviceIds is list && data.serviceIds.size() >= 1 && data.serviceIds.size() <= 20
+        && data.serviceIds[0] is string
+        && data.serviceNames is list && data.serviceNames.size() >= 1 && data.serviceNames.size() <= 20
+        && data.serviceNames[0] is string
+        && data.totalPrice is number && data.totalPrice >= 0 && data.totalPrice <= 10000
+        && data.totalDurationMinutes is number && data.totalDurationMinutes >= 5 && data.totalDurationMinutes <= 600
+        && data.date is string && data.date.size() == 10 && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.startTime is string && data.startTime.size() == 5 && data.startTime.matches('^([01]\\d|2[0-3]):([0-5]\\d)$')
+        && data.endTime is string && data.endTime.size() == 5 && data.endTime.matches('^([01]\\d|2[0-3]):([0-5]\\d)$')
+        && data.clientName is string && data.clientName.size() >= 2 && data.clientName.size() <= 100
+        && data.clientPhone is string && data.clientPhone.size() >= 6 && data.clientPhone.size() <= 30
+        && data.clientEmail is string && data.clientEmail.size() >= 5 && data.clientEmail.size() <= 120
+        && data.notes is string && data.notes.size() <= 500
+        && data.gdprConsent is bool && data.gdprConsent == true
+        && data.status is string && data.status in ['confirmada', 'concluida', 'cancelada', 'nao_compareceu']
+        && data.createdAtIso is string && data.createdAtIso.size() >= 10 && data.createdAtIso.size() <= 40;
+    }
+
+    function isValidSalonSettings(data) {
+      return data.keys().hasAll([
+          'salonName', 'address', 'phone', 'email', 'instagramUrl',
+          'whatsappUrl', 'scheduleSummary', 'minAdvanceHours', 'cancellationPolicy', 'privacyPolicyText'
+        ])
+        && data.keys().hasOnly([
+          'salonName', 'address', 'phone', 'email', 'instagramUrl',
+          'whatsappUrl', 'scheduleSummary', 'minAdvanceHours', 'cancellationPolicy', 'privacyPolicyText'
+        ])
+        && data.salonName is string && data.salonName.size() >= 2 && data.salonName.size() <= 100
+        && data.address is string && data.address.size() >= 5 && data.address.size() <= 200
+        && data.phone is string && data.phone.size() >= 6 && data.phone.size() <= 30
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 120
+        && data.instagramUrl is string && data.instagramUrl.size() >= 5 && data.instagramUrl.size() <= 200
+        && data.whatsappUrl is string && data.whatsappUrl.size() >= 5 && data.whatsappUrl.size() <= 200
+        && data.scheduleSummary is string && data.scheduleSummary.size() >= 5 && data.scheduleSummary.size() <= 200
+        && data.minAdvanceHours is number && data.minAdvanceHours >= 0 && data.minAdvanceHours <= 168
+        && data.cancellationPolicy is string && data.cancellationPolicy.size() >= 10 && data.cancellationPolicy.size() <= 1000
+        && data.privacyPolicyText is string && data.privacyPolicyText.size() >= 20 && data.privacyPolicyText.size() <= 4000;
+    }
+
+    // 4. Collection Rules
+
+    // Public catalog of services
+    match /services/{serviceId} {
+      allow get: if isValidId(serviceId) && (existing().active == true || isOwnerAdmin());
+      allow list: if existing().active == true || isOwnerAdmin();
+      allow create, update: if isOwnerAdmin() && isValidId(serviceId) && isValidService(incoming());
+      allow delete: if isOwnerAdmin() && isValidId(serviceId);
+    }
+
+    // Public profiles & schedules of professionals (NO salary/commission data here)
+    match /professionals/{professionalId} {
+      allow get: if isValidId(professionalId) && (existing().active == true || isOwnerAdmin());
+      allow list: if existing().active == true || isOwnerAdmin();
+      allow create, update: if isOwnerAdmin() && isValidId(professionalId) && isValidProfessional(incoming());
+      allow delete: if isOwnerAdmin() && isValidId(professionalId);
+    }
+
+    // Strictly private contract & commission details for owner only
+    match /professionals_private/{professionalId} {
+      allow get: if isOwnerAdmin() && isValidId(professionalId);
+      allow list: if isOwnerAdmin();
+      allow create, update: if isOwnerAdmin() && isValidId(professionalId) && isValidProfessionalPrivate(incoming());
+      allow delete: if isOwnerAdmin() && isValidId(professionalId);
+    }
+
+    // Anonymous time-slot occupancy (No client PII! Allows public availability checks & conflict-free booking)
+    match /booked_slots/{slotId} {
+      allow get: if isValidId(slotId) && (existing().status in ['confirmada', 'concluida', 'cancelada', 'nao_compareceu'] || isOwnerAdmin());
+      allow list: if existing().status in ['confirmada', 'concluida', 'cancelada', 'nao_compareceu'] || isOwnerAdmin();
+      // Visitors can create a confirmed slot when booking an appointment
+      allow create: if isValidId(slotId)
+        && isValidBookedSlot(incoming())
+        && (incoming().status == 'confirmada' || isOwnerAdmin());
+      allow update: if isOwnerAdmin() && isValidId(slotId) && isValidBookedSlot(incoming());
+      allow delete: if isOwnerAdmin() && isValidId(slotId);
+    }
+
+    // Full appointments containing Client PII (Name, Phone, Email, Notes)
+    // PUBLIC CAN ONLY CREATE; NEVER READ OR LIST! Only Owner Admin can read/update/delete.
+    match /appointments/{appointmentId} {
+      allow get: if isOwnerAdmin() && isValidId(appointmentId);
+      allow list: if isOwnerAdmin();
+      allow create: if isValidId(appointmentId)
+        && isValidAppointment(incoming())
+        && (incoming().status == 'confirmada' || isOwnerAdmin())
+        && existsAfter(/databases/$(database)/documents/booked_slots/$(incoming().slotId));
+      allow update: if isOwnerAdmin() && isValidId(appointmentId) && isValidAppointment(incoming());
+      allow delete: if isOwnerAdmin() && isValidId(appointmentId);
+    }
+
+    // Public salon settings
+    match /settings/{docId} {
+      allow get: if isValidId(docId);
+      allow list: if existing().salonName is string;
+      allow create, update: if isOwnerAdmin() && isValidId(docId) && isValidSalonSettings(incoming());
+      allow delete: if isOwnerAdmin() && isValidId(docId);
+    }
+
+    // Connection test path
+    match /test/{docId} {
+      allow get: if isValidId(docId);
+    }
+  }
+}
