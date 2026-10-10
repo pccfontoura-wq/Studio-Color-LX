@@ -132,10 +132,14 @@ export const SalonProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       profsQuery,
       (snap) => {
         if (!snap.empty) {
-          const items: ProfessionalPublic[] = snap.docs.map((d) => ({
-            id: d.id,
-            ...(d.data() as Omit<ProfessionalPublic, 'id'>),
-          }));
+          const items: ProfessionalPublic[] = snap.docs.map((d) => {
+            const raw = d.data() as Omit<ProfessionalPublic, 'id'>;
+            return {
+              id: d.id,
+              ...raw,
+              photoUrl: raw.photoUrl?.replace(/^\/src\/assets\/images\//, '/') || raw.photoUrl,
+            };
+          });
           setProfessionals(items);
         } else if (!isOwner) {
           setProfessionals(SALON_CONFIG.initialProfessionals.filter((p) => p.active));

@@ -121,32 +121,32 @@ export const SALON_CONFIG = {
     minAdvanceHours: 2,
   },
 
-  // Imagens geradas à medida para o Studio Color Lx
+  // Imagens geradas à medida para o Studio Color Lx (servidas diretamente de /public)
   images: {
-    hero: '/src/assets/images/salon_hero_lisbon_1791489669289.jpg',
-    galleryBalayage: '/src/assets/images/gallery_balayage_hair_1791489679117.jpg',
-    galleryDetail: '/src/assets/images/gallery_colorimetry_art_1791489688253.jpg',
-    stylist1: '/src/assets/images/stylist_portrait_1_1791489698296.jpg',
-    stylist2: '/src/assets/images/stylist_portrait_2_1791489707860.jpg',
+    hero: '/salon_hero_lisbon_1791489669289.jpg',
+    galleryBalayage: '/gallery_balayage_hair_1791489679117.jpg',
+    galleryDetail: '/gallery_colorimetry_art_1791489688253.jpg',
+    stylist1: '/stylist_portrait_1_1791489698296.jpg',
+    stylist2: '/stylist_portrait_2_1791489707860.jpg',
   },
 
   // Galeria editorial
   gallery: [
     {
       id: 'gal-1',
-      url: '/src/assets/images/gallery_balayage_hair_1791489679117.jpg',
+      url: '/gallery_balayage_hair_1791489679117.jpg',
       title: 'Balayage & Iluminação',
       caption: 'Transições suaves e brilho tridimensional desenhados à medida.',
     },
     {
       id: 'gal-2',
-      url: '/src/assets/images/salon_hero_lisbon_1791489669289.jpg',
+      url: '/salon_hero_lisbon_1791489669289.jpg',
       title: 'O Nosso Atelier',
       caption: 'Luz natural de Lisboa, materiais orgânicos e conforto absoluto.',
     },
     {
       id: 'gal-3',
-      url: '/src/assets/images/gallery_colorimetry_art_1791489688253.jpg',
+      url: '/gallery_colorimetry_art_1791489688253.jpg',
       title: 'Ritual de Colorimetria',
       caption: 'Fórmulas botânicas de alta precisão que respeitam a fibra capilar.',
     },
@@ -234,7 +234,7 @@ export const SALON_CONFIG = {
       name: 'Carolina Fontoura',
       role: 'Fundadora & Master Colorist',
       bio: 'Especialista em colorimetria corretiva, loiros iluminados e técnicas de balayage sem marcas.',
-      photoUrl: '/src/assets/images/stylist_portrait_1_1791489698296.jpg',
+      photoUrl: '/stylist_portrait_1_1791489698296.jpg',
       serviceIds: [
         'srv-balayage',
         'srv-madeixas',
@@ -255,7 +255,7 @@ export const SALON_CONFIG = {
       name: 'Inês Vasconcelos',
       role: 'Senior Colorist & Hair Stylist',
       bio: 'Dedicada a cortes personalizados de baixa manutenção, morenas iluminadas e tratamentos de saúde capilar.',
-      photoUrl: '/src/assets/images/stylist_portrait_2_1791489707860.jpg',
+      photoUrl: '/stylist_portrait_2_1791489707860.jpg',
       serviceIds: [
         'srv-balayage',
         'srv-madeixas',
@@ -277,7 +277,7 @@ export const SALON_CONFIG = {
       name: 'Matilde Mendonça',
       role: 'Hair Stylist & Terapeuta Capilar',
       bio: 'Focada em rituais de reconstrução profunda, glossing, corte feminino e brushing de assinatura.',
-      photoUrl: '/src/assets/images/gallery_balayage_hair_1791489679117.jpg',
+      photoUrl: '/gallery_balayage_hair_1791489679117.jpg',
       serviceIds: [
         'srv-coloracao',
         'srv-gloss',
